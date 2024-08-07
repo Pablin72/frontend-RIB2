@@ -2,15 +2,17 @@
 import { useState } from 'react';
 import Styles from './styles.module.css';
 
-const BASE_URL = 'http://127.0.0.1:5000/images';
+const BASE_URL = 'http://127.0.0.1:5000/images/';
 
 export default function Home() {
   const [imageInput, setImageInput] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imageResults, setImageResults] = useState([]);
+  const [queryImage, setQueryImage] = useState(null);
 
   const handleImageChange = (e) => {
     setImageInput(e.target.files[0]);
+    setQueryImage(URL.createObjectURL(e.target.files[0]));
   };
 
   const handleSubmit = async (e) => {
@@ -36,12 +38,16 @@ export default function Home() {
       console.log("Response data:", data);
 
       // Mostrar las imágenes similares
-      const imageElements = data.map(([path, dist]) => (
-        <div key={path}>
-          <img src={`${BASE_URL}${path}`} alt={`Similar ${path}`} style={{ width: '200px' }} />
-          <p>Distance: {dist}</p>
-        </div>
-      ));
+      const imageElements = data.map(([path, dist]) => {
+        // Asegúrate de que `path` no tenga duplicaciones
+        const cleanPath = path.replace('101_ObjectCategories/101_ObjectCategories', '101_ObjectCategories');
+        return (
+          <div key={cleanPath} className={Styles.result}>
+            <img src={`${BASE_URL}${cleanPath}`} alt={`Similar ${cleanPath}`} className={Styles.resultImage} />
+            <p>Distance: {dist}</p>
+          </div>
+        );
+      });
 
       setImageResults(imageElements);
     } catch (error) {
@@ -71,7 +77,13 @@ export default function Home() {
           </button>
         </div>
       </form>
-      <div>
+      {queryImage && (
+        <div className={Styles.queryImageContainer}>
+          <h3>Query Image:</h3>
+          <img src={queryImage} alt="Query" className={Styles.queryImage} />
+        </div>
+      )}
+      <div className={Styles.resultsContainer}>
         {imageResults}
       </div>
     </div>
